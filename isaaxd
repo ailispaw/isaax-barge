@@ -1,0 +1,121 @@
+#! /bin/sh
+#
+#       /etc/rc.d/init.d/isaaxd
+#
+#       Starts isaaxd as a daemon
+#
+# chkconfig: 2345 87 17
+# description: Starts and stops a single isaaxd instance on this system
+
+### BEGIN INIT INFO
+# Provides: isaaxd
+# Required-Start: $network $named
+# Required-Stop: $network $named
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: This service manages the Isaax Daemon.
+# Description: Isaax Daemon
+### END INIT INFO
+
+#
+# Source function library.
+#
+if [ -f /etc/rc.d/init.d/functions ]; then
+    . /etc/rc.d/init.d/functions
+fi
+
+exec="/opt/bin/isaaxd"
+servname="Isaax Daemon"
+
+proc="isaaxd"
+pidfile="/var/run/$proc.pid"
+lockfile="/var/lock/subsys/$proc"
+stdoutlog="/var/log/$proc.log"
+stderrlog="/var/log/$proc.err"
+
+[ -d $(dirname $lockfile) ] || mkdir -p $(dirname $lockfile)
+
+[ -e /etc/sysconfig/$proc ] && . /etc/sysconfig/$proc
+
+start() {
+    [ -x $exec ] || exit 5
+
+    if [ -f $pidfile ]; then
+        if ! [ -d "/proc/$(cat $pidfile)" ]; then
+            rm $pidfile
+            if [ -f $lockfile ]; then
+                rm $lockfile
+            fi
+        fi
+    fi
+
+    if ! [ -f $pidfile ]; then
+        printf "Starting $servname:\t"
+        echo "$(date)" >> $stdoutlog
+        $exec  >> $stdoutlog 2>> $stderrlog &
+        echo $! > $pidfile
+        touch $lockfile
+        echo "OK"
+    else
+        # failure
+        echo
+        printf "$pidfile still exists...\n"
+        exit 7
+    fi
+}
+
+stop() {
+    printf "Stopping $servname:\t"
+    pkill $proc
+    retval=$?
+    if [ $retval -eq 0 ]; then
+        rm -f $pidfile
+        rm -f $lockfile
+        echo "OK"
+    else
+        echo "FAILED"
+    fi
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+rh_status() {
+    pgrep $proc
+    retval=$?
+    if [ $retval -eq 0 ]; then
+        echo "$servname is running"
+    else
+        echo "$servname is stopped"
+    fi
+    return $retval
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    status)
+        rh_status
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart}"
+        exit 2
+esac
+
+exit $?
