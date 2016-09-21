@@ -21,3 +21,11 @@ $ ssh bargee@<IP Address for Barge RPi> -q -o UserKnownHostsFile=/dev/null -o St
 ```bash
 [bargee@barge ~]$ sudo /etc/init.d/isaaxd stop
 ```
+
+## Restart
+
+It looks like necessary to be affected by updates, although patching is successful after committing. :(
+
+```bash
+[bargee@barge ~]$ sudo /etc/init.d/isaaxd restart
+```
