@@ -16,4 +16,5 @@ sudo mv isaaxd /etc/init.d/isaaxd
 
 # Install dependencies of isaaxd
 sudo pkg install git
+sudo pkg install libstdcxx
 sudo pkg install nodejs
